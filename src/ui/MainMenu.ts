@@ -97,7 +97,7 @@ export class MainMenu {
       el('kbd', '', k, row);
       el('span', '', v, row);
     }
-    el('div', 'version', 'v1.1 · Three.js · Tripo kart showcase · gamepad supported', title);
+    el('div', 'version', 'v1.2 · Three.js · in-race Tripo kart marker · gamepad supported', title);
     title.addEventListener('click', () => {
       if (this.panel === 'title') this.goTo('characterSelect', true);
     });

@@ -2,6 +2,7 @@
  * In-race heads-up display. Pure DOM over the canvas; DOM writes only happen
  * when a displayed value actually changes.
  */
+import * as THREE from 'three';
 import type { IKart, ITrack, ItemType } from '../core/types';
 import { ALL_ITEM_TYPES } from '../core/types';
 import { events } from '../core/events';
@@ -9,6 +10,7 @@ import { BASE_TOP_SPEED } from '../core/constants';
 import { clamp01, damp, formatRaceTime, ordinal } from '../core/math';
 import { el, restartAnimation, TextField } from './dom';
 import { Minimap } from './Minimap';
+import { isTripoKartReady } from '../kart/tripoKartAsset';
 
 const ITEM_LABEL: Record<ItemType, string> = {
   none: '',
@@ -94,10 +96,13 @@ export class HUD {
   private readonly timed: TimedNode[] = [];
   private readonly boostGlow: HTMLElement;
   private boostGlowApplied = -1;
+  private readonly tripoKartIndicator: HTMLElement;
+  private readonly tripoIndicatorPosition = new THREE.Vector3();
 
   constructor(
     root: HTMLElement,
     private readonly buildIcon: (item: ItemType) => HTMLCanvasElement,
+    private readonly camera: THREE.Camera,
   ) {
     this.rootNode = el('div', 'hud hidden', undefined, root);
 
@@ -149,6 +154,14 @@ export class HUD {
     const mapWrap = el('div', 'hud-minimap glass', undefined, this.rootNode);
     this.minimap = new Minimap(mapWrap);
 
+    // Keep the provenance visible in the race itself. The marker is projected
+    // from the player's world position so it stays attached to the Tripo kart
+    // instead of reading like a generic HUD badge.
+    this.tripoKartIndicator = el('div', 'hud-tripo-kart-indicator', undefined, this.rootNode);
+    this.tripoKartIndicator.setAttribute('aria-label', 'This 3D kart was made with Tripo');
+    el('span', 'hud-tripo-kart-label', 'TRIPO-MADE 3D KART', this.tripoKartIndicator);
+    el('span', 'hud-tripo-kart-arrow', '↓', this.tripoKartIndicator);
+
     // Centre overlays
     this.center = el('div', 'hud-center', undefined, this.rootNode);
     this.wrongWay = el('div', 'hud-wrongway', undefined, this.rootNode);
@@ -180,6 +193,22 @@ export class HUD {
     if (!this.visible) return;
     const s = player.state;
     this.playerId = s.id;
+
+    const showTripoIndicator = s.character.id === 'zippy' && isTripoKartReady();
+    if (showTripoIndicator) {
+      this.tripoIndicatorPosition.copy(s.position);
+      this.tripoIndicatorPosition.y += 1.75;
+      this.tripoIndicatorPosition.project(this.camera);
+      const p = this.tripoIndicatorPosition;
+      const inView = p.z > -1 && p.z < 1 && Math.abs(p.x) < 1.15 && Math.abs(p.y) < 1.15;
+      this.tripoKartIndicator.classList.toggle('visible', inView);
+      if (inView) {
+        this.tripoKartIndicator.style.left = `${((p.x + 1) * 50).toFixed(2)}%`;
+        this.tripoKartIndicator.style.top = `${((1 - p.y) * 50).toFixed(2)}%`;
+      }
+    } else {
+      this.tripoKartIndicator.classList.remove('visible');
+    }
 
     // Place numeral
     const place = s.place > 0 ? s.place : karts.length;
