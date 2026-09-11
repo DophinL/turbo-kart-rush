@@ -1,8 +1,7 @@
 /**
- * Procedural go-kart model. Cartoony-but-polished, faces local -Z, wheels rest
- * on y = 0. Everything is generated from primitives (no assets). Static parts
- * that share a material are merged into single meshes to keep draw calls low
- * (~20 per kart).
+ * Go-kart model. Most racers use the original procedural kart. Zippy Nova swaps
+ * those vehicle parts for a Tripo-generated GLB while retaining the procedural
+ * driver and all existing physics/animation contracts.
  */
 import * as THREE from 'three';
 import { RoundedBoxGeometry } from 'three/examples/jsm/geometries/RoundedBoxGeometry.js';
@@ -10,6 +9,7 @@ import { mergeGeometries, mergeVertices } from 'three/examples/jsm/utils/BufferG
 import type { CharacterDef } from '../core/types';
 import { lerp, smoothstep } from '../core/math';
 import { CHARACTERS } from './roster';
+import { createTripoKart } from './tripoKartAsset';
 
 export interface KartModelParts {
   root: THREE.Group;
@@ -554,7 +554,26 @@ export function buildKartModel(character: CharacterDef): KartModelPartsEx {
   driver.add(driverHead);
   root.add(driver);
 
+  // Zippy is the showcase racer. Load the authored vehicle asynchronously and
+  // keep this procedural model as a graceful fallback for slow/offline loads.
+  const proceduralVehicleParts = root.children.filter((child) => child !== driver);
+  let disposed = false;
+  if (character.id === 'zippy') {
+    void createTripoKart()
+      .then((tripoKart) => {
+        if (disposed) return;
+        proceduralVehicleParts.forEach((part) => {
+          part.visible = false;
+        });
+        driver.position.y += 0.16;
+        driver.position.z += 0.02;
+        root.add(tripoKart);
+      })
+      .catch(() => undefined);
+  }
+
   const dispose = () => {
+    disposed = true;
     for (const g of geometries) g.dispose();
     for (const m of materials) m.dispose();
     for (const t of textures) t.dispose();

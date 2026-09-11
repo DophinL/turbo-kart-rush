@@ -5,6 +5,7 @@
 import type { CharacterDef, Difficulty, InputState, RaceSettings, TrackDefinition } from '../core/types';
 import { events } from '../core/events';
 import { GAME_TITLE, DEFAULT_LAPS } from '../core/constants';
+import { isTripoKartReady, TRIPO_KART_READY_EVENT } from '../kart/tripoKartAsset';
 import { button, cssHex, cssRgba, el, TextField } from './dom';
 
 export type MenuPanel = 'title' | 'characterSelect' | 'trackSelect';
@@ -40,6 +41,16 @@ export class MainMenu {
   private charIndex = 0;
   private readonly charName: TextField;
   private readonly charTagline: TextField;
+  private readonly tripoReveal: HTMLElement;
+  private readonly tripoCompare: HTMLButtonElement;
+  private tripoRevealTimer = 0;
+  private tripoRevealFrame = 0;
+  private tripoRevealShown = false;
+  private tripoKartReady = false;
+  private readonly onTripoKartReady = () => {
+    this.tripoKartReady = true;
+    this.syncTripoReveal();
+  };
 
   // Track select
   private readonly trackCards: HTMLElement[] = [];
@@ -86,7 +97,7 @@ export class MainMenu {
       el('kbd', '', k, row);
       el('span', '', v, row);
     }
-    el('div', 'version', 'v1.0 · Three.js · 100% procedural · gamepad supported', title);
+    el('div', 'version', 'v1.1 · Three.js · Tripo kart showcase · gamepad supported', title);
     title.addEventListener('click', () => {
       if (this.panel === 'title') this.goTo('characterSelect', true);
     });
@@ -112,9 +123,41 @@ export class MainMenu {
     const charInfo = el('div', 'select-info', undefined, charFoot);
     this.charName = new TextField(el('div', 'select-info-name', '', charInfo));
     this.charTagline = new TextField(el('div', 'select-info-tagline', '', charInfo));
+    this.tripoCompare = el('button', 'tripo-credit hidden', '✦ KART MADE WITH TRIPO · SEE BEFORE', charInfo);
+    this.tripoCompare.type = 'button';
+    this.tripoCompare.addEventListener('click', (event) => {
+      event.stopPropagation();
+      this.showTripoReveal(true);
+    });
     const charActions = el('div', 'actions', undefined, charFoot);
     charActions.appendChild(button('← BACK', 'ghost', () => this.goTo('title', true)));
     charActions.appendChild(button('CONTINUE →', 'primary', () => this.goTo('trackSelect', true)));
+
+    this.tripoReveal = el('aside', 'tripo-reveal glass hidden', undefined, chars);
+    this.tripoReveal.setAttribute('aria-live', 'polite');
+    this.tripoReveal.setAttribute('aria-label', 'Zippy kart before and after');
+    const revealTop = el('div', 'tripo-reveal-top', undefined, this.tripoReveal);
+    el('span', 'tripo-reveal-kicker', 'TRIPO UPGRADE', revealTop);
+    const revealClose = el('button', 'tripo-reveal-close', '×', revealTop);
+    revealClose.type = 'button';
+    revealClose.setAttribute('aria-label', 'Close comparison');
+    revealClose.addEventListener('click', () => this.hideTripoReveal());
+    const before = el('figure', 'tripo-before', undefined, this.tripoReveal);
+    const beforeImage = el('img', '', undefined, before);
+    beforeImage.setAttribute('src', `${import.meta.env.BASE_URL}showcase/original-zippy-kart-crop.jpg`);
+    beforeImage.setAttribute('alt', 'Original procedural Zippy kart');
+    beforeImage.setAttribute('width', '560');
+    beforeImage.setAttribute('height', '315');
+    el('figcaption', '', 'BEFORE · ORIGINAL KART', before);
+    el('p', 'tripo-reveal-copy', "Zippy's new 3D kart was created with Tripo.", this.tripoReveal);
+    const tripoLink = el('a', 'tripo-reveal-link', 'CREATE YOUR OWN 3D ASSET ↗', this.tripoReveal);
+    tripoLink.setAttribute(
+      'href',
+      'https://www.tripo3d.ai/?utm_source=jaredliu.me&utm_medium=referral&utm_campaign=turbo_kart_rush_demo',
+    );
+    tripoLink.setAttribute('target', '_blank');
+    tripoLink.setAttribute('rel', 'noopener noreferrer');
+    tripoLink.addEventListener('click', (event) => event.stopPropagation());
 
     // ----------------------------------------------------------- track select
     const tr = el('section', 'panel-select panel-tracks', undefined, this.rootNode);
@@ -171,6 +214,8 @@ export class MainMenu {
     this.setTrack(0);
     this.setDifficulty(1);
     this.applyPanel();
+    this.tripoKartReady = isTripoKartReady();
+    window.addEventListener(TRIPO_KART_READY_EVENT, this.onTripoKartReady);
   }
 
   // ------------------------------------------------------------------ public
@@ -191,11 +236,15 @@ export class MainMenu {
   }
 
   hide(): void {
+    this.hideTripoReveal(true);
     this.rootNode.classList.add('hidden');
     this.visible = false;
   }
 
   dispose(): void {
+    window.removeEventListener(TRIPO_KART_READY_EVENT, this.onTripoKartReady);
+    window.clearTimeout(this.tripoRevealTimer);
+    cancelAnimationFrame(this.tripoRevealFrame);
     this.rootNode.remove();
   }
 
@@ -272,6 +321,7 @@ export class MainMenu {
       this.trackRow = 0;
       this.refreshTrackFocus();
     }
+    this.syncTripoReveal();
   }
 
   private setCharacter(i: number, sound = false): void {
@@ -285,6 +335,8 @@ export class MainMenu {
     const def = this.characters[i];
     this.charName.set(def.name.toUpperCase());
     this.charTagline.set(def.tagline);
+    this.tripoCompare.classList.toggle('hidden', def.id !== 'zippy');
+    this.syncTripoReveal();
     if (changed) {
       if (sound) events.emit('ui:move', {});
       this.onHighlight?.(def.id);
@@ -330,6 +382,44 @@ export class MainMenu {
     });
   }
 
+  private syncTripoReveal(): void {
+    const eligible = this.visible && this.panel === 'characterSelect' && this.characters[this.charIndex]?.id === 'zippy';
+    if (!eligible) {
+      this.hideTripoReveal(true);
+      return;
+    }
+    if (this.tripoKartReady && !this.tripoRevealShown) this.showTripoReveal(false);
+  }
+
+  private showTripoReveal(manual: boolean): void {
+    if (!this.tripoKartReady || this.panel !== 'characterSelect' || this.characters[this.charIndex]?.id !== 'zippy') return;
+    if (!manual && this.tripoRevealShown) return;
+    this.tripoRevealShown = true;
+    window.clearTimeout(this.tripoRevealTimer);
+    cancelAnimationFrame(this.tripoRevealFrame);
+    this.tripoReveal.classList.remove('hidden');
+    this.tripoRevealFrame = requestAnimationFrame(() => {
+      this.tripoRevealFrame = 0;
+      this.tripoReveal.classList.add('visible');
+    });
+    this.tripoRevealTimer = window.setTimeout(() => this.hideTripoReveal(), 8000);
+  }
+
+  private hideTripoReveal(immediate = false): void {
+    window.clearTimeout(this.tripoRevealTimer);
+    cancelAnimationFrame(this.tripoRevealFrame);
+    this.tripoRevealFrame = 0;
+    this.tripoRevealTimer = 0;
+    this.tripoReveal.classList.remove('visible');
+    if (immediate) {
+      this.tripoReveal.classList.add('hidden');
+      return;
+    }
+    window.setTimeout(() => {
+      if (!this.tripoReveal.classList.contains('visible')) this.tripoReveal.classList.add('hidden');
+    }, 260);
+  }
+
   private buildCharacterCard(c: CharacterDef): HTMLElement {
     const card = el('div', 'card char-card glass');
     card.tabIndex = -1;
@@ -344,6 +434,7 @@ export class MainMenu {
     )} 100%)`;
     el('div', 'char-wheel char-wheel-l', undefined, swatch);
     el('div', 'char-wheel char-wheel-r', undefined, swatch);
+    if (c.id === 'zippy') el('span', 'tripo-card-badge', 'TRIPO 3D', swatch);
     el('div', 'card-name', c.name.toUpperCase(), card);
     el('div', 'card-tag', c.tagline, card);
     const pill = el('div', `pill weight-${c.weightClass}`, c.weightClass.toUpperCase(), card);

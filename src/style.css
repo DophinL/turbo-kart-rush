@@ -767,6 +767,21 @@ kbd {
   right: 12%;
 }
 
+.tripo-card-badge {
+  position: absolute;
+  left: 8px;
+  top: 8px;
+  padding: 4px 7px 3px;
+  border: 1px solid rgba(255, 255, 255, 0.72);
+  border-radius: 999px;
+  background: rgba(7, 13, 29, 0.72);
+  box-shadow: 0 0 20px rgba(31, 214, 238, 0.55);
+  color: #fff;
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.15em;
+}
+
 .stats {
   display: grid;
   gap: 4px;
@@ -905,6 +920,155 @@ kbd {
 .select-info-tagline {
   color: var(--ink-dim);
   font-size: 13px;
+}
+
+.tripo-credit {
+  display: block;
+  appearance: none;
+  margin-top: 5px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #8befff;
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  cursor: pointer;
+  text-align: left;
+  text-shadow: 0 0 14px rgba(31, 214, 238, 0.48);
+}
+
+.tripo-credit:hover,
+.tripo-credit:focus-visible {
+  color: #fff;
+  outline: none;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.tripo-reveal {
+  position: absolute;
+  top: 8vh;
+  right: 3.5vw;
+  z-index: 8;
+  width: min(27vw, 340px);
+  padding: 13px;
+  border-color: rgba(100, 231, 255, 0.52);
+  background: linear-gradient(145deg, rgba(10, 18, 42, 0.92), rgba(34, 13, 48, 0.88));
+  box-shadow: 0 24px 65px rgba(0, 0, 0, 0.58), 0 0 0 1px rgba(31, 214, 238, 0.18),
+    0 0 42px rgba(31, 214, 238, 0.2);
+  opacity: 0;
+  transform: translateY(-12px) scale(0.96);
+  transition: opacity 0.24s var(--ease-out), transform 0.28s var(--ease-out);
+  pointer-events: auto;
+}
+
+.tripo-reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+.tripo-reveal::after {
+  content: '↙';
+  position: absolute;
+  left: 20px;
+  bottom: -72px;
+  color: #7df3ff;
+  font-family: var(--display);
+  font-size: 68px;
+  line-height: 1;
+  filter: drop-shadow(0 0 12px rgba(31, 214, 238, 0.9));
+  animation: tripo-arrow 1.05s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes tripo-arrow {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(7px, 7px); }
+}
+
+.tripo-reveal-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.tripo-reveal-kicker {
+  color: #9df5ff;
+  font-family: var(--display);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+}
+
+.tripo-reveal-close {
+  appearance: none;
+  width: 25px;
+  height: 25px;
+  padding: 0;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--ink-dim);
+  font-size: 18px;
+  line-height: 20px;
+  cursor: pointer;
+}
+
+.tripo-before {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #100d25;
+}
+
+.tripo-before img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  opacity: 0.82;
+  filter: saturate(0.72) contrast(0.95);
+}
+
+.tripo-before figcaption {
+  position: absolute;
+  left: 8px;
+  bottom: 7px;
+  padding: 4px 7px;
+  border-radius: 5px;
+  background: rgba(7, 7, 18, 0.82);
+  color: #fff;
+  font-family: var(--display);
+  font-size: 9px;
+  letter-spacing: 0.13em;
+}
+
+.tripo-reveal-copy {
+  margin: 9px 0 5px;
+  color: #fff;
+  font-family: var(--display);
+  font-size: clamp(15px, 1.25vw, 18px);
+  letter-spacing: 0.03em;
+  line-height: 1.12;
+}
+
+.tripo-reveal-link {
+  color: #7df3ff;
+  font-family: var(--display);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-decoration: none;
+}
+
+.tripo-reveal-link:hover,
+.tripo-reveal-link:focus-visible {
+  color: #fff;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .difficulty {
@@ -1915,6 +2079,14 @@ kbd {
   .hud-speed {
     width: 110px;
   }
+  .tripo-reveal {
+    top: 5vh;
+    width: min(25vw, 285px);
+    padding: 10px;
+  }
+  .tripo-before img {
+    max-height: 92px;
+  }
 }
 
 @media (max-width: 1100px) {
@@ -1924,6 +2096,10 @@ kbd {
   .select-footer {
     flex-wrap: wrap;
     justify-content: center;
+  }
+  .tripo-reveal {
+    right: 2vw;
+    width: 270px;
   }
 }
 
