@@ -636,7 +636,7 @@ export class Game {
     partial.followCamera = followCamera;
     followCamera.setTrack(track);
 
-    const hud = new HUD(this.uiRoot, buildItemIcon);
+    const hud = new HUD(this.uiRoot, buildItemIcon, this.camera);
     partial.hud = hud;
     hud.setTrack(track);
 
