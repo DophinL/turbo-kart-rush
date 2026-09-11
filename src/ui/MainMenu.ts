@@ -97,7 +97,7 @@ export class MainMenu {
       el('kbd', '', k, row);
       el('span', '', v, row);
     }
-    el('div', 'version', 'v1.2 · Three.js · in-race Tripo kart marker · gamepad supported', title);
+    el('div', 'version', 'v1.3 · Tripo kart upgrade showcase · gamepad supported', title);
     title.addEventListener('click', () => {
       if (this.panel === 'title') this.goTo('characterSelect', true);
     });
@@ -123,7 +123,7 @@ export class MainMenu {
     const charInfo = el('div', 'select-info', undefined, charFoot);
     this.charName = new TextField(el('div', 'select-info-name', '', charInfo));
     this.charTagline = new TextField(el('div', 'select-info-tagline', '', charInfo));
-    this.tripoCompare = el('button', 'tripo-credit hidden', '✦ KART MADE WITH TRIPO · SEE BEFORE', charInfo);
+    this.tripoCompare = el('button', 'tripo-credit hidden', '✦ TRIPO MADE THIS UPGRADE · COMPARE BEFORE / AFTER', charInfo);
     this.tripoCompare.type = 'button';
     this.tripoCompare.addEventListener('click', (event) => {
       event.stopPropagation();
@@ -137,20 +137,34 @@ export class MainMenu {
     this.tripoReveal.setAttribute('aria-live', 'polite');
     this.tripoReveal.setAttribute('aria-label', 'Zippy kart before and after');
     const revealTop = el('div', 'tripo-reveal-top', undefined, this.tripoReveal);
-    el('span', 'tripo-reveal-kicker', 'TRIPO UPGRADE', revealTop);
+    const revealHeading = el('div', '', undefined, revealTop);
+    el('span', 'tripo-reveal-kicker', 'BEFORE / AFTER', revealHeading);
+    el('strong', 'tripo-reveal-title', 'A MORE DISTINCTIVE RACER', revealHeading);
     const revealClose = el('button', 'tripo-reveal-close', '×', revealTop);
     revealClose.type = 'button';
     revealClose.setAttribute('aria-label', 'Close comparison');
     revealClose.addEventListener('click', () => this.hideTripoReveal());
-    const before = el('figure', 'tripo-before', undefined, this.tripoReveal);
+    const compareGrid = el('div', 'tripo-compare-grid', undefined, this.tripoReveal);
+    const before = el('figure', 'tripo-compare tripo-before', undefined, compareGrid);
     const beforeImage = el('img', '', undefined, before);
     beforeImage.setAttribute('src', `${import.meta.env.BASE_URL}showcase/original-zippy-kart-crop.jpg`);
     beforeImage.setAttribute('alt', 'Original procedural Zippy kart');
-    beforeImage.setAttribute('width', '560');
-    beforeImage.setAttribute('height', '315');
-    el('figcaption', '', 'BEFORE · ORIGINAL KART', before);
-    el('p', 'tripo-reveal-copy', "Zippy's new 3D kart was created with Tripo.", this.tripoReveal);
-    const tripoLink = el('a', 'tripo-reveal-link', 'CREATE YOUR OWN 3D ASSET ↗', this.tripoReveal);
+    beforeImage.setAttribute('width', '455');
+    beforeImage.setAttribute('height', '500');
+    el('figcaption', '', 'BEFORE · BUILT-IN KART', before);
+    const after = el('figure', 'tripo-compare tripo-after', undefined, compareGrid);
+    const afterImage = el('img', '', undefined, after);
+    afterImage.setAttribute('src', `${import.meta.env.BASE_URL}showcase/tripo-zippy-preview.png`);
+    afterImage.setAttribute('alt', 'Upgraded Zippy kart created with Tripo');
+    afterImage.setAttribute('width', '512');
+    afterImage.setAttribute('height', '512');
+    el('figcaption', '', 'AFTER · CREATED WITH TRIPO', after);
+    const benefits = el('div', 'tripo-reveal-benefits', undefined, this.tripoReveal);
+    el('span', '', 'SCULPTED BODYWORK', benefits);
+    el('span', '', 'DETAILED PBR', benefits);
+    el('span', '', 'CHASE-VIEW SILHOUETTE', benefits);
+    el('p', 'tripo-reveal-copy', 'From simple primitives to a polished hero kart built to read from every angle.', this.tripoReveal);
+    const tripoLink = el('a', 'tripo-reveal-link', 'MAKE A GAME-READY 3D ASSET ↗', this.tripoReveal);
     tripoLink.setAttribute(
       'href',
       'https://www.tripo3d.ai/?utm_source=jaredliu.me&utm_medium=referral&utm_campaign=turbo_kart_rush_demo',
@@ -402,7 +416,7 @@ export class MainMenu {
       this.tripoRevealFrame = 0;
       this.tripoReveal.classList.add('visible');
     });
-    this.tripoRevealTimer = window.setTimeout(() => this.hideTripoReveal(), 8000);
+    this.tripoRevealTimer = window.setTimeout(() => this.hideTripoReveal(), 6500);
   }
 
   private hideTripoReveal(immediate = false): void {
@@ -422,6 +436,7 @@ export class MainMenu {
 
   private buildCharacterCard(c: CharacterDef): HTMLElement {
     const card = el('div', 'card char-card glass');
+    if (c.id === 'zippy') card.classList.add('tripo-featured');
     card.tabIndex = -1;
     card.style.setProperty('--card-accent', cssHex(c.color));
     card.style.setProperty('--card-accent-2', cssHex(c.accent));
@@ -434,7 +449,7 @@ export class MainMenu {
     )} 100%)`;
     el('div', 'char-wheel char-wheel-l', undefined, swatch);
     el('div', 'char-wheel char-wheel-r', undefined, swatch);
-    if (c.id === 'zippy') el('span', 'tripo-card-badge', 'TRIPO 3D', swatch);
+    if (c.id === 'zippy') el('span', 'tripo-card-badge', 'TRIPO UPGRADE', swatch);
     el('div', 'card-name', c.name.toUpperCase(), card);
     el('div', 'card-tag', c.tagline, card);
     const pill = el('div', `pill weight-${c.weightClass}`, c.weightClass.toUpperCase(), card);

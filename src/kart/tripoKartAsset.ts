@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-const ASSET_URL = `${import.meta.env.BASE_URL}models/tripo/zippy-nova-kart.glb`;
+const ASSET_URL = `${import.meta.env.BASE_URL}models/tripo/zippy-nova-kart-v2.glb`;
 const TARGET_LENGTH = 1.64;
 
 export const TRIPO_KART_READY_EVENT = 'tripo-kart-ready';
