@@ -98,6 +98,7 @@ export class HUD {
   private boostGlowApplied = -1;
   private readonly tripoKartIndicator: HTMLElement;
   private readonly tripoIndicatorPosition = new THREE.Vector3();
+  private tripoIndicatorTtl = 0;
 
   constructor(
     root: HTMLElement,
@@ -154,12 +155,19 @@ export class HUD {
     const mapWrap = el('div', 'hud-minimap glass', undefined, this.rootNode);
     this.minimap = new Minimap(mapWrap);
 
-    // Keep the provenance visible in the race itself. The marker is projected
-    // from the player's world position so it stays attached to the Tripo kart
-    // instead of reading like a generic HUD badge.
+    // Briefly anchor the provenance to the upgraded kart after GO. The full
+    // before/after story lives in character select, so this never becomes a
+    // permanent HUD obstruction.
     this.tripoKartIndicator = el('div', 'hud-tripo-kart-indicator', undefined, this.rootNode);
-    this.tripoKartIndicator.setAttribute('aria-label', 'This 3D kart was made with Tripo');
-    el('span', 'hud-tripo-kart-label', 'TRIPO-MADE 3D KART', this.tripoKartIndicator);
+    this.tripoKartIndicator.setAttribute('aria-label', 'Before procedural kart, now upgraded with Tripo');
+    const beforeThumb = el('figure', 'hud-tripo-before-thumb', undefined, this.tripoKartIndicator);
+    const beforeImage = el('img', '', undefined, beforeThumb);
+    beforeImage.setAttribute('src', `${import.meta.env.BASE_URL}showcase/original-zippy-kart-crop.jpg`);
+    beforeImage.setAttribute('alt', 'Original procedural kart before the Tripo upgrade');
+    beforeImage.setAttribute('width', '455');
+    beforeImage.setAttribute('height', '500');
+    el('figcaption', '', 'BEFORE', beforeThumb);
+    el('span', 'hud-tripo-kart-label', 'NOW · TRIPO UPGRADE', this.tripoKartIndicator);
     el('span', 'hud-tripo-kart-arrow', '↓', this.tripoKartIndicator);
 
     // Centre overlays
@@ -194,7 +202,9 @@ export class HUD {
     const s = player.state;
     this.playerId = s.id;
 
-    const showTripoIndicator = s.character.id === 'zippy' && isTripoKartReady();
+    this.tripoIndicatorTtl = Math.max(0, this.tripoIndicatorTtl - dt);
+    const showTripoIndicator =
+      this.tripoIndicatorTtl > 0 && s.character.id === 'zippy' && isTripoKartReady();
     if (showTripoIndicator) {
       this.tripoIndicatorPosition.copy(s.position);
       this.tripoIndicatorPosition.y += 1.75;
@@ -305,6 +315,7 @@ export class HUD {
         this.flashCenter(String(e.count), 'hud-count', 0.95);
       }),
       on('race:start', () => {
+        this.tripoIndicatorTtl = 3.25;
         this.flashCenter('GO!', 'hud-count hud-go', 1.1);
       }),
       on('race:lap', (e) => {
