@@ -3,7 +3,7 @@
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "TURBO KART RUSH - a AAA-quality Mario Kart style arcade racer built with Three.js. Fully procedural: no external assets.",
+  "description": "TURBO KART RUSH - a Three.js arcade racer with a Tripo-generated showcase kart.",
   "scripts": {
     "dev": "vite --host",
     "build": "vite build",

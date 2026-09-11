@@ -5,6 +5,7 @@ import { GAME_TITLE } from './core/constants';
 import { Game } from './game/Game';
 import { el } from './ui/dom';
 import { showToast } from './ui/toast';
+import { preloadTripoKart } from './kart/tripoKartAsset';
 
 function hasWebGL2(): boolean {
   try {
@@ -41,6 +42,9 @@ function boot(): void {
     );
     return;
   }
+
+  // Begin downloading the showcase kart while the player is still on the title screen.
+  preloadTripoKart();
 
   let errorToasts = 0;
   const report = (message: string, err: unknown): void => {
