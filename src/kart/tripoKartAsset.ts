@@ -39,7 +39,10 @@ function prepareTemplate(scene: THREE.Group): THREE.Group {
     const meshMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const sourceMaterial of meshMaterials) {
       if (!(sourceMaterial instanceof THREE.MeshStandardMaterial)) continue;
-      sourceMaterial.color.multiplyScalar(0.4);
+      // Keep a distinctive cyan base even in sandboxed hosts where an embedded
+      // Base Color image cannot be sampled. When the texture is available this
+      // acts as a subtle cool tint instead of replacing the authored detail.
+      sourceMaterial.color.setRGB(0.18, 0.42, 0.62);
       sourceMaterial.metalness = Math.min(sourceMaterial.metalness, 0.18);
       sourceMaterial.roughness = Math.max(sourceMaterial.roughness, 0.68);
       sourceMaterial.envMapIntensity = 0.85;
