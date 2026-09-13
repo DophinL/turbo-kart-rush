@@ -31,6 +31,24 @@ function prepareTemplate(scene: THREE.Group): THREE.Group {
     mesh.castShadow = true;
     mesh.receiveShadow = true;
     mesh.frustumCulled = true;
+
+    // Tripo exports this asset with a fully metallic PBR material. That reads
+    // well in the menu's studio environment, but loses most of its cyan/pink
+    // texture under the race tracks' direct-only lighting. Keep the authored
+    // maps while using game-safe values that remain colorful in both scenes.
+    const meshMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+    for (const sourceMaterial of meshMaterials) {
+      if (!(sourceMaterial instanceof THREE.MeshStandardMaterial)) continue;
+      sourceMaterial.metalness = Math.min(sourceMaterial.metalness, 0.32);
+      sourceMaterial.roughness = Math.max(sourceMaterial.roughness, 0.58);
+      sourceMaterial.envMapIntensity = 0.85;
+      if (sourceMaterial.map) {
+        sourceMaterial.emissive.set(0xffffff);
+        sourceMaterial.emissiveMap = sourceMaterial.map;
+        sourceMaterial.emissiveIntensity = 0.08;
+      }
+      sourceMaterial.needsUpdate = true;
+    }
   });
 
   return scene;
