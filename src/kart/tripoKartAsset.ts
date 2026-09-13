@@ -42,11 +42,6 @@ function prepareTemplate(scene: THREE.Group): THREE.Group {
       sourceMaterial.metalness = Math.min(sourceMaterial.metalness, 0.32);
       sourceMaterial.roughness = Math.max(sourceMaterial.roughness, 0.58);
       sourceMaterial.envMapIntensity = 0.85;
-      if (sourceMaterial.map) {
-        sourceMaterial.emissive.set(0xffffff);
-        sourceMaterial.emissiveMap = sourceMaterial.map;
-        sourceMaterial.emissiveIntensity = 0.08;
-      }
       sourceMaterial.needsUpdate = true;
     }
   });
