@@ -39,8 +39,9 @@ function prepareTemplate(scene: THREE.Group): THREE.Group {
     const meshMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
     for (const sourceMaterial of meshMaterials) {
       if (!(sourceMaterial instanceof THREE.MeshStandardMaterial)) continue;
-      sourceMaterial.metalness = Math.min(sourceMaterial.metalness, 0.32);
-      sourceMaterial.roughness = Math.max(sourceMaterial.roughness, 0.58);
+      sourceMaterial.color.multiplyScalar(0.4);
+      sourceMaterial.metalness = Math.min(sourceMaterial.metalness, 0.18);
+      sourceMaterial.roughness = Math.max(sourceMaterial.roughness, 0.68);
       sourceMaterial.envMapIntensity = 0.85;
       sourceMaterial.needsUpdate = true;
     }
