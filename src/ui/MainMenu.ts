@@ -406,7 +406,11 @@ export class MainMenu {
   }
 
   private showTripoReveal(manual: boolean): void {
-    if (!this.tripoKartReady || this.panel !== 'characterSelect' || this.characters[this.charIndex]?.id !== 'zippy') return;
+    if (this.panel !== 'characterSelect' || this.characters[this.charIndex]?.id !== 'zippy') return;
+    // The comparison is useful even if the live GLB is still loading (or falls
+    // back on a constrained device). Only the automatic reveal depends on the
+    // model-ready signal; an explicit user click must always work.
+    if (!manual && !this.tripoKartReady) return;
     if (!manual && this.tripoRevealShown) return;
     this.tripoRevealShown = true;
     window.clearTimeout(this.tripoRevealTimer);
